@@ -20,6 +20,11 @@ private:
   std::vector<Obstacle> obstacles;
   std::vector<Alien> aliens;
   void moveAliens();
+  void AliensShooter();
+
   int alienDirection;
   void moveAliensDown();
+  std::vector<Laser> alienLasers;
+  constexpr static float timeAlienShootingInterval = 0.3;
+  float timeAlienShooting;
 };
