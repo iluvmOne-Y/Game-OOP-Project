@@ -10,7 +10,7 @@ public:
     void Draw();
     static void UnloadImage();
     static Texture2D alienImage[3];
-
+    Rectangle GetRectangle();
     int type;
     Vector2 position;
 };

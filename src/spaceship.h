@@ -1,6 +1,7 @@
 #pragma once
 #include "lasers.h"
-class Spaceship {
+class Spaceship
+{
 public:
   Spaceship();
   ~Spaceship();
@@ -8,6 +9,8 @@ public:
   void MoveLeft();
   void MoveRight();
   void FireLaser();
+  Rectangle GetRectangle();
+  void Reset();
   std::vector<Laser> lasers;
 
 private:

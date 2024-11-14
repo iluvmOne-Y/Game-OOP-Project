@@ -3,10 +3,8 @@
 
 Game::Game()
 {
-  obstacles = createObstacles();
-  aliens = createAliens();
-  alienDirection = 2;
-  timeAlienShooting = 0;
+
+  InitGame();
 }
 Game::~Game()
 {
@@ -31,34 +29,53 @@ void Game::Draw()
   {
     alienLaser.Draw();
   }
-  DeleteInactiveLasers();
 }
 void Game::Update()
 {
-  for (auto &Laser : spaceship.lasers)
+  if (run)
   {
-    Laser.Update();
+    for (auto &Laser : spaceship.lasers)
+    {
+      Laser.Update();
+    }
+    MoveAliens();
+    AliensShooter();
+    for (auto &laser : alienLasers)
+    {
+      laser.Update();
+    }
+
+    DeleteInactiveLasers();
+
+    // Check all collisions
+    CheckForCollisions();
   }
-  moveAliens();
-  AliensShooter();
-  for (auto &laser : alienLasers)
+  else
   {
-    laser.Update();
+    if (IsKeyDown(KEY_ENTER))
+    {
+      ResetGame();
+      InitGame();
+    }
   }
 }
+
 void Game::HandleInput()
 {
-  if (IsKeyDown(KEY_LEFT))
+  if (run)
   {
-    spaceship.MoveLeft();
-  }
-  else if (IsKeyDown(KEY_RIGHT))
-  {
-    spaceship.MoveRight();
-  }
-  else if (IsKeyDown(KEY_SPACE))
-  {
-    spaceship.FireLaser();
+    if (IsKeyDown(KEY_LEFT))
+    {
+      spaceship.MoveLeft();
+    }
+    else if (IsKeyDown(KEY_RIGHT))
+    {
+      spaceship.MoveRight();
+    }
+    else if (IsKeyDown(KEY_SPACE))
+    {
+      spaceship.FireLaser();
+    }
   }
 }
 void Game::DeleteInactiveLasers()
@@ -73,6 +90,13 @@ void Game::DeleteInactiveLasers()
     {
       it++;
     }
+  }
+  for (auto it = alienLasers.begin(); it != alienLasers.end();)
+  {
+    if (!it->active)
+      it = alienLasers.erase(it);
+    else
+      ++it;
   }
 }
 
@@ -117,21 +141,110 @@ std::vector<Alien> Game::createAliens()
   }
   return aliens;
 }
-void Game::moveAliens()
+void Game::MoveAliens()
 {
-  for (auto &Alien : aliens)
+  for (auto &alien : aliens)
   {
-    if (Alien.position.x + Alien.alienImage[Alien.type - 1].width > GetScreenWidth())
+    if (alien.position.x + alien.alienImage[alien.type - 1].width > GetScreenWidth())
     {
-      alienDirection = -2;
-      moveAliensDown();
+      aliensDirection = -1;
+      MoveAliensDown();
     }
-    if (Alien.position.x < 0)
+    if (alien.position.x < 25)
     {
-      alienDirection = 2;
-      moveAliensDown();
+      aliensDirection = 1;
+      MoveAliensDown();
     }
-    Alien.Update(alienDirection);
+
+    alien.Update(aliensDirection);
+  }
+}
+
+void Game::CheckForCollisions()
+{
+  for (auto &laser : spaceship.lasers)
+  {
+    auto it = aliens.begin();
+    while (it != aliens.end())
+    {
+      if (CheckCollisionRecs(it->GetRectangle(), laser.GetRectangle()))
+      {
+        it = aliens.erase(it);
+        laser.active = false;
+      }
+      else
+      {
+        it++;
+      }
+    }
+
+    for (auto &obstacle : obstacles)
+    {
+
+      auto it = obstacle.blocks.begin();
+      while (it != obstacle.blocks.end())
+      {
+        if (CheckCollisionRecs(it->GetRectangle(), laser.GetRectangle()))
+        {
+          it = obstacle.blocks.erase(it);
+          laser.active = false;
+        }
+        else
+        {
+          it++;
+        }
+      }
+    }
+  }
+  for (auto &laser : alienLasers)
+  {
+    if (CheckCollisionRecs(spaceship.GetRectangle(), laser.GetRectangle()))
+    {
+      laser.active = false;
+      lives--;
+      if (lives == 0)
+      {
+        GameOver();
+      }
+    }
+    for (auto &obstacle : obstacles)
+    {
+      auto it = obstacle.blocks.begin();
+      while (it != obstacle.blocks.end())
+      {
+        if (CheckCollisionRecs(it->GetRectangle(), laser.GetRectangle()))
+        {
+          it = obstacle.blocks.erase(it);
+          laser.active = false;
+        }
+        else
+        {
+          it++;
+        }
+      }
+    }
+  }
+  for (auto &alien : aliens)
+  {
+    for (auto &obstacle : obstacles)
+    {
+      auto it = obstacle.blocks.begin();
+      while (it != obstacle.blocks.end())
+      {
+        if (CheckCollisionRecs(it->GetRectangle(), alien.GetRectangle()))
+        {
+          it = obstacle.blocks.erase(it);
+        }
+        else
+        {
+          it++;
+        }
+      }
+    }
+    if (CheckCollisionRecs(spaceship.GetRectangle(), alien.GetRectangle()))
+    {
+      GameOver();
+    }
   }
 }
 
@@ -141,7 +254,7 @@ void Game::AliensShooter()
   if (currentTime - timeAlienShooting >= timeAlienShootingInterval && !aliens.empty())
   {
     // Allow 2-3 aliens to shoot at once
-    int shootersCount = GetRandomValue(2, 3);
+    int shootersCount = GetRandomValue(1, 2);
     for (int i = 0; i < shootersCount; i++)
     {
       int randomIndex = GetRandomValue(0, aliens.size() - 1);
@@ -154,10 +267,33 @@ void Game::AliensShooter()
   }
 }
 
-void Game::moveAliensDown()
+void Game::MoveAliensDown()
 {
   for (auto &Alien : aliens)
   {
     Alien.position.y += 2;
   }
+}
+
+void Game::GameOver()
+{
+  run = false;
+}
+
+void Game::InitGame()
+{
+  obstacles = createObstacles();
+  aliens = createAliens();
+  aliensDirection = 2;
+  timeAlienShooting = 0;
+  lives = 3;
+  run = true;
+}
+
+void Game::ResetGame()
+{
+  spaceship.Reset();
+  aliens.clear();
+  alienLasers.clear();
+  obstacles.clear();
 }

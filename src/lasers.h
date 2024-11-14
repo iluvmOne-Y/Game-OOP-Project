@@ -1,7 +1,8 @@
 #include <raylib-cpp.hpp>
 #include <vector>
 
-class Laser {
+class Laser
+{
 private:
   Vector2 position;
   int speed;
@@ -11,4 +12,5 @@ public:
   void Draw();
   void Update();
   bool active;
+  Rectangle GetRectangle();
 };

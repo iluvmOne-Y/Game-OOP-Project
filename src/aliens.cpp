@@ -38,6 +38,10 @@ void Alien::UnloadImage()
         UnloadTexture(alienImage[i]);
     }
 }
+Rectangle Alien::GetRectangle()
+{
+    return {position.x, position.y, (float)alienImage[type - 1].width, (float)alienImage[type - 1].height};
+}
 int Alien::GetType()
 {
     return type;
