@@ -12,9 +12,10 @@ public:
   Rectangle GetRectangle();
   void Reset();
   std::vector<Laser> lasers;
+  Vector2 position;
 
 private:
   Texture2D image;
-  Vector2 position;
+
   double timeFire;
 };

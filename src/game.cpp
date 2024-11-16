@@ -99,8 +99,29 @@ void Game::DeleteInactiveLasers()
       ++it;
   }
 }
-
 std::vector<Obstacle> Game::createObstacles()
+{
+  float margin = 40.0f;
+  float screenWidth = GetScreenWidth() - (2 * margin);
+  float screenHeight = GetScreenHeight() - (2 * margin);
+
+  int obstacleWidth = Obstacle::grid[0].size() * 3;
+
+  // Position obstacles at 60% of screen height
+  float obstacleY = margin + (screenHeight * 0.7f);
+
+  // Calculate gap between obstacles
+  float totalObstaclesWidth = obstacleWidth * 4;       // 4 obstacles
+  float gap = (screenWidth - totalObstaclesWidth) / 5; // 5 gaps (including edges)
+
+  for (int i = 0; i < 4; i++)
+  {
+    float offsetX = (i + 1) * gap + i * obstacleWidth;
+    obstacles.push_back(Obstacle({offsetX, obstacleY}));
+  }
+  return obstacles;
+}
+/*std::vector<Obstacle> Game::createObstacles()
 {
   int obstacleWidth = Obstacle::grid[0].size() * 3;
   float gap = (GetScreenWidth() - (4 * obstacleWidth)) / 5;
@@ -111,14 +132,21 @@ std::vector<Obstacle> Game::createObstacles()
     obstacles.push_back(Obstacle({offsetX, obstacleY}));
   }
   return obstacles;
-}
+}*/
 
 std::vector<Alien> Game::createAliens()
 {
   std::vector<Alien> aliens;
-  for (int i = 0; i < 5; i++)
+  float margin = 40.0f;
+  float screenWidth = GetScreenWidth() - (2 * margin);
+
+  const float ALIEN_SPACING_X = 50;  // Horizontal space between aliens
+  const float ALIEN_SPACING_Y = 40;  // Vertical space between aliens
+  const float START_X = margin + 50; // Starting X position
+  const float START_Y = margin + 40;
+  for (int i = 0; i < 7; i++)
   {
-    for (int j = 0; j < 15; j++)
+    for (int j = 0; j < 20; j++)
     {
       int alienType;
       if (i == 0)
@@ -134,8 +162,8 @@ std::vector<Alien> Game::createAliens()
         alienType = 1;
       }
 
-      float x = 110 + j * 70;
-      float y = 110 + i * 70;
+      float x = START_X + j * ALIEN_SPACING_X;
+      float y = START_Y + i * ALIEN_SPACING_Y;
       aliens.push_back(Alien(alienType, {x, y}));
     }
   }
@@ -143,14 +171,16 @@ std::vector<Alien> Game::createAliens()
 }
 void Game::MoveAliens()
 {
+  float margin = 40.0f;
   for (auto &alien : aliens)
   {
-    if (alien.position.x + alien.alienImage[alien.type - 1].width > GetScreenWidth())
+
+    if (alien.position.x + alien.alienImage[alien.type - 1].width > GetScreenWidth() - margin)
     {
       aliensDirection = -1;
       MoveAliensDown();
     }
-    if (alien.position.x < 25)
+    if (alien.position.x < margin)
     {
       aliensDirection = 1;
       MoveAliensDown();
@@ -282,6 +312,14 @@ void Game::GameOver()
 
 void Game::InitGame()
 {
+  float margin = 40.0f;
+  float screenWidth = GetScreenWidth() - (2 * margin);
+  float screenHeight = GetScreenHeight() - (2 * margin);
+
+  // Initialize spaceship position at bottom center of screen
+  float spaceshipX = margin + screenWidth / 2.0f - 32; // 32 is half the spaceship width
+  float spaceshipY = GetScreenHeight() - margin - 200; // Adjust Y position to be above margin
+  spaceship.position = {spaceshipX, spaceshipY};
   obstacles = createObstacles();
   aliens = createAliens();
   aliensDirection = 2;

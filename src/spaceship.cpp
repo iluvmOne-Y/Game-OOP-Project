@@ -2,9 +2,15 @@
 
 Spaceship::Spaceship()
 {
+
   image = LoadTexture("Graphics/spaceship.png");
-  position.x = (GetScreenWidth() - image.width) / 2;
-  position.y = (GetScreenHeight() - image.height);
+  float margin = 40.0f;
+  float screenWidth = GetScreenWidth() - (2 * margin);
+  float screenHeight = GetScreenHeight() - (2 * margin);
+
+  // Initialize spaceship position at bottom center of screen
+  float spaceshipX = margin + screenWidth / 2.0f - 32; // 32 is half the spaceship width
+  float spaceshipY = GetScreenHeight() - margin - 60;
   timeFire = 0.0;
 }
 
@@ -51,7 +57,12 @@ Rectangle Spaceship::GetRectangle()
 
 void Spaceship::Reset()
 {
-  position.x = (GetScreenWidth() - image.width) / 2;
-  position.y = GetScreenHeight() - image.height;
+  float margin = 40.0f;
+  float screenWidth = GetScreenWidth() - (2 * margin);
+  float screenHeight = GetScreenHeight() - (2 * margin);
+
+  // Initialize spaceship position at bottom center of screen
+  float spaceshipX = margin + screenWidth / 2.0f - 32; // 32 is half the spaceship width
+  float spaceshipY = GetScreenHeight() - margin - 60;
   lasers.clear();
 }
